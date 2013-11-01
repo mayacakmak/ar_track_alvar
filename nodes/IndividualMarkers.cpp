@@ -336,13 +336,17 @@ void getPointCloudCallback (const sensor_msgs::PointCloud2ConstPtr &msg)
     //Use the kinect to improve the pose
     Pose ret_pose;
     GetMarkerPoses(&ipl_image, cloud);
-
+ROS_INFO("Got marker poses");
     try{
       tf::StampedTransform CamToOutput;
       try{
-	tf_listener->waitForTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, ros::Duration(1.0));
-	tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, CamToOutput);
-      }
+ROS_INFO(output_frame.c_str());
+ROS_INFO(image_msg->header.frame_id.c_str());
+	tf_listener->waitForTransform(output_frame, image_msg->header.frame_id, ros::Time(0), ros::Duration(1.0));
+	ROS_INFO("done waiting");
+	tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, ros::Time(0), CamToOutput);
+ROS_INFO("done transform");      
+}
       catch (tf::TransformException ex){
 	ROS_ERROR("%s",ex.what());
       }
@@ -482,7 +486,7 @@ int main(int argc, char *argv[])
   rvizMarkerPub2_ = n.advertise < visualization_msgs::Marker > ("ARmarker_points", 0);
 	
   //Give tf a chance to catch up before the camera callback starts asking for transforms
-  ros::Duration(1.0).sleep();
+  //ros::Duration(1.0).sleep();
   ros::spinOnce();	
 	 
   ROS_INFO ("Subscribing to image topic");

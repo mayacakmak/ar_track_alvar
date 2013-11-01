@@ -71,19 +71,27 @@ void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg);
 
 void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg)
 {
+	ROS_INFO("got image");
 	//If we've already gotten the cam info, then go ahead
 	if(cam->getCamInfo_){
+		ROS_INFO("has cam info");
 		try{
 			tf::StampedTransform CamToOutput;
     			try{
-					tf_listener->waitForTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, ros::Duration(1.0));
-					tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, CamToOutput);
+
+ROS_INFO(output_frame.c_str());
+ROS_INFO(("/" + image_msg->header.frame_id).c_str());
+
+tf_listener->waitForTransform(output_frame, "/" + image_msg->header.frame_id, ros::Time(0), ros::Duration(1.0));
+ROS_INFO("waited for transform");
+tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, CamToOutput);
+ROS_INFO("looked up transform");
    				}
     			catch (tf::TransformException ex){
       				ROS_ERROR("%s",ex.what());
     			}
 
-
+ROS_INFO("Done the transform");
             //Convert the image
             cv_ptr_ = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
 
@@ -97,6 +105,7 @@ void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg)
             marker_detector.Detect(&ipl_image, cam, true, false, max_new_marker_error, max_track_error, CVSEQ, true);
 
 			arPoseMarkers_.markers.clear ();
+			ROS_INFO("Found markers %d", marker_detector.markers->size());
 			for (size_t i=0; i<marker_detector.markers->size(); i++) 
 			{
 				//Get the pose relative to the camera
@@ -223,19 +232,19 @@ int main(int argc, char *argv[])
 	marker_detector.SetMarkerSize(marker_size);
 
 	cam = new Camera(n, cam_info_topic);
+
 	tf_listener = new tf::TransformListener(n);
 	tf_broadcaster = new tf::TransformBroadcaster();
 	arMarkerPub_ = n.advertise < ar_track_alvar::AlvarMarkers > ("ar_pose_marker", 0);
 	rvizMarkerPub_ = n.advertise < visualization_msgs::Marker > ("visualization_marker", 0);
-	
 	//Give tf a chance to catch up before the camera callback starts asking for transforms
-	ros::Duration(1.0).sleep();
+	//ros::Duration(1.0).sleep();
 	ros::spinOnce();	
 	 
 	ROS_INFO ("Subscribing to image topic");
 	image_transport::ImageTransport it_(n);
     	cam_sub_ = it_.subscribe (cam_image_topic, 1, &getCapCallback);
-
+	ROS_INFO("DONE");
 	ros::spin ();
 
     return 0;
