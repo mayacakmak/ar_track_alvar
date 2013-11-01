@@ -71,27 +71,19 @@ void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg);
 
 void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg)
 {
-	ROS_INFO("got image");
 	//If we've already gotten the cam info, then go ahead
 	if(cam->getCamInfo_){
-		ROS_INFO("has cam info");
 		try{
 			tf::StampedTransform CamToOutput;
     			try{
 
-ROS_INFO(output_frame.c_str());
-ROS_INFO(("/" + image_msg->header.frame_id).c_str());
-
 tf_listener->waitForTransform(output_frame, "/" + image_msg->header.frame_id, ros::Time(0), ros::Duration(1.0));
-ROS_INFO("waited for transform");
 tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, image_msg->header.stamp, CamToOutput);
-ROS_INFO("looked up transform");
    				}
     			catch (tf::TransformException ex){
       				ROS_ERROR("%s",ex.what());
     			}
 
-ROS_INFO("Done the transform");
             //Convert the image
             cv_ptr_ = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
 
@@ -105,7 +97,6 @@ ROS_INFO("Done the transform");
             marker_detector.Detect(&ipl_image, cam, true, false, max_new_marker_error, max_track_error, CVSEQ, true);
 
 			arPoseMarkers_.markers.clear ();
-			ROS_INFO("Found markers %d", marker_detector.markers->size());
 			for (size_t i=0; i<marker_detector.markers->size(); i++) 
 			{
 				//Get the pose relative to the camera
@@ -244,7 +235,6 @@ int main(int argc, char *argv[])
 	ROS_INFO ("Subscribing to image topic");
 	image_transport::ImageTransport it_(n);
     	cam_sub_ = it_.subscribe (cam_image_topic, 1, &getCapCallback);
-	ROS_INFO("DONE");
 	ros::spin ();
 
     return 0;

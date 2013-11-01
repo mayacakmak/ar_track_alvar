@@ -336,16 +336,11 @@ void getPointCloudCallback (const sensor_msgs::PointCloud2ConstPtr &msg)
     //Use the kinect to improve the pose
     Pose ret_pose;
     GetMarkerPoses(&ipl_image, cloud);
-ROS_INFO("Got marker poses");
     try{
       tf::StampedTransform CamToOutput;
       try{
-ROS_INFO(output_frame.c_str());
-ROS_INFO(image_msg->header.frame_id.c_str());
 	tf_listener->waitForTransform(output_frame, image_msg->header.frame_id, ros::Time(0), ros::Duration(1.0));
-	ROS_INFO("done waiting");
 	tf_listener->lookupTransform(output_frame, image_msg->header.frame_id, ros::Time(0), CamToOutput);
-ROS_INFO("done transform");      
 }
       catch (tf::TransformException ex){
 	ROS_ERROR("%s",ex.what());
@@ -487,8 +482,10 @@ int main(int argc, char *argv[])
 	
   //Give tf a chance to catch up before the camera callback starts asking for transforms
   //ros::Duration(1.0).sleep();
-  ros::spinOnce();	
-	 
+  
+  for(int i=0; i<1000; i++)
+     ros::spinOnce();
+		 
   ROS_INFO ("Subscribing to image topic");
   cloud_sub_ = n.subscribe(cam_image_topic, 1, &getPointCloudCallback);
 
